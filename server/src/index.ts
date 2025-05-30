@@ -24,7 +24,12 @@ const io = new Server(httpServer, {
 app.use(helmet());
 
 // CORS and JSON parsing
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://scat-31-cardgame-1.onrender.com"
+  ]
+}));
 app.use(express.json());
 
 // Serve static files in production
