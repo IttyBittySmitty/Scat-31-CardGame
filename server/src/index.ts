@@ -12,10 +12,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "https://scat-31-cardgame-1.onrender.com"
-    ],
+    origin: '*', // TEMP: allow all origins for debugging
     methods: ["GET", "POST"]
   }
 });
