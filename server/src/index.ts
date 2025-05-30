@@ -23,13 +23,13 @@ const io = new Server(httpServer, {
 // Security middleware
 app.use(helmet());
 
-// CORS and JSON parsing
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://scat-31-cardgame-1.onrender.com"
-  ]
-}));
+// Remove Express CORS middleware for now
+// app.use(cors({
+//   origin: [
+//     "http://localhost:3000",
+//     "https://scat-31-cardgame-1.onrender.com"
+//   ]
+// }));
 app.use(express.json());
 
 // Serve static files in production
