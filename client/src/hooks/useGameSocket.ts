@@ -146,6 +146,11 @@ export const useGameSocket = () => {
       setLobbyState(data);
     });
 
+    newSocket.on('playerKnocked', (data: { knockerId: string }) => {
+      const knocker = gameState.players.find(p => p.id === data.knockerId);
+      setGameMessage(knocker ? `${knocker.name} has knocked!` : 'A player has knocked!');
+    });
+
     return () => {
       newSocket.close();
     };

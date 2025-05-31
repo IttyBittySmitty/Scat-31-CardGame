@@ -18,9 +18,13 @@ export const RoundSummaryModal: React.FC<RoundSummaryModalProps> = ({
 }) => {
   if (!show || !summary) return null;
 
-  const handleNextRound = () => {
+  const winner = summary.players.find((p: any) => p.lives > 0 && !p.isSpectator);
+  const isWinner = socket && winner && socket.id === winner.id;
+  const onlyOneAlive = summary.players.filter((p: any) => p.lives > 0 && !p.isSpectator).length === 1;
+
+  const handleNewGame = () => {
     if (socket) {
-      socket.emit('ackRoundSummary');
+      socket.emit('startNewGame');
     }
   };
 
@@ -44,9 +48,16 @@ export const RoundSummaryModal: React.FC<RoundSummaryModalProps> = ({
             </div>
           ))}
         </div>
-        {!isSpectator && (
+        {onlyOneAlive && isWinner ? (
           <button
-            onClick={handleNextRound}
+            onClick={handleNewGame}
+            className="mt-6 w-full px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            New Game
+          </button>
+        ) : (
+          <button
+            onClick={() => socket && socket.emit('ackRoundSummary')}
             className="mt-6 w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Next Round

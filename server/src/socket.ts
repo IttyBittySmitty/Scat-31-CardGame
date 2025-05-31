@@ -319,7 +319,15 @@ export function setupSocketHandlers(io: Server, game: Game): void {
     socket.on('disconnect', () => {
       game.players.delete(socket.id);
       if (game.hostId === socket.id) {
-        game.hostId = Array.from(game.players.keys())[0] || null;
+        // Find a new host: prefer non-spectators with lives > 0
+        const candidates = Array.from(game.players.values()).filter(p => !p.isSpectator && p.lives > 0);
+        if (candidates.length > 0) {
+          game.hostId = candidates[0].id;
+        } else {
+          // If all are spectators, pick any remaining player
+          const allPlayers = Array.from(game.players.keys());
+          game.hostId = allPlayers.length > 0 ? allPlayers[0] : null;
+        }
       }
       io.emit('playerLeft', socket.id);
       emitLobbyState(io, game);
@@ -395,6 +403,38 @@ export function setupSocketHandlers(io: Server, game: Game): void {
         });
         roundAckSet.clear();
       }
+    });
+
+    socket.on('startNewGame', () => {
+      // Only allow the host/winner to start a new game
+      const player = game.players.get(socket.id);
+      const alivePlayers = Array.from(game.players.values()).filter(p => p.lives > 0 && !p.isSpectator);
+      if (!player || alivePlayers.length !== 1 || player.id !== alivePlayers[0].id) {
+        socket.emit('error', 'Only the winner can start a new game');
+        return;
+      }
+      // Reset all players
+      for (const p of game.players.values()) {
+        p.lives = 3;
+        p.score = 0;
+        p.cards = [];
+        p.isSpectator = false;
+        p.turnCount = 0;
+        p.canKnock = false;
+        p.canDraw = false;
+        p.canDiscard = false;
+        p.isReady = false;
+      }
+      game.status = 'lobby';
+      game.currentPlayer = null;
+      game.firstTurn = false;
+      game.firstPlayerId = null;
+      game.knockerId = null;
+      game.knockActive = false;
+      game.drawnThisTurn = false;
+      game.gamePhase = 'firstTurn';
+      game.hostId = player.id;
+      emitLobbyState(io, game);
     });
   });
 }
