@@ -143,6 +143,7 @@ export function setupSocketHandlers(io: Server, game: Game): void {
         playerId: socket.id,
         card,
         fromDeck,
+        players: Array.from(game.players.values()),
       });
       if (checkForAutomaticWin(player)) {
         handleAutomaticWin(io, game, socket.id);

@@ -117,14 +117,10 @@ export const useGameSocket = () => {
       }));
     });
 
-    newSocket.on('cardDrawn', (data: { playerId: string, card: Card, fromDeck: boolean }) => {
+    newSocket.on('cardDrawn', (data: { playerId: string, card: Card, fromDeck: boolean, players: Player[] }) => {
       setGameState(prev => ({
         ...prev,
-        players: prev.players.map(p => 
-          p.id === data.playerId 
-            ? { ...p, cards: [...p.cards, data.card] }
-            : p
-        ),
+        players: data.players,
       }));
     });
 
