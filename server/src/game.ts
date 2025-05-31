@@ -102,13 +102,6 @@ export function afterDiscard(game: Game): void {
     currentPlayer.canDiscard = false;
   }
   advanceTurn(game);
-  // Ensure the next player's permissions are properly set
-  const nextPlayer = game.players.get(game.currentPlayer!);
-  if (nextPlayer) {
-    nextPlayer.canDraw = true;
-    nextPlayer.canDiscard = false;
-    nextPlayer.canKnock = (game.gamePhase === 'preKnock');
-  }
 }
 
 export function afterKeep(game: Game, player: Player): void {
