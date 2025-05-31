@@ -26,6 +26,7 @@ export interface GameState {
   firstTurn: boolean;
   gamePhase: 'firstTurn' | 'preKnock' | 'knockActive' | null;
   topDeckCard: Card | null;
+  status: 'waiting' | 'lobby' | 'playing' | 'ended';
 }
 
 export interface LobbyState {

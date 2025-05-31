@@ -4,6 +4,7 @@ import { Player, Card, GameState, LobbyState } from '../types';
 
 export const useGameSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [gameState, setGameState] = useState<GameState>({
     players: [],
     currentPlayer: null,
@@ -49,6 +50,7 @@ export const useGameSocket = () => {
         topDeckCard: data.topDeckCard || null,
       });
       setGameMessage(null);
+      setIsLoading(false);
     });
 
     newSocket.on('roundStarted', (data) => {
@@ -117,12 +119,14 @@ export const useGameSocket = () => {
 
     newSocket.on('gameEnded', (data) => {
       console.log('gameEnded', data);
-      setGameState(prev => ({
-        ...prev,
-        players: data.players,
-      }));
-      setGameMessage(`${data.winner} has won the game!`);
-      setEndGameData(data);
+      if (!isLoading) {
+        setGameState(prev => ({
+          ...prev,
+          players: data.players,
+        }));
+        setGameMessage(`${data.winner} has won the game!`);
+        setEndGameData(data);
+      }
     });
 
     newSocket.on('error', (message: string) => {
@@ -140,6 +144,7 @@ export const useGameSocket = () => {
         gamePhase: data.gamePhase ?? prev.gamePhase,
         topDeckCard: data.topDeckCard ?? null,
       }));
+      setIsLoading(false);
     });
 
     newSocket.on('serverRestarted', () => {
@@ -185,6 +190,7 @@ export const useGameSocket = () => {
     endGameData,
     roundCountdown,
     isMyTurn,
+    isLoading,
     setError,
     setGameMessage,
   };
