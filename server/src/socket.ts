@@ -90,9 +90,11 @@ export function setupSocketHandlers(io: Server, game: Game): void {
         }
       }
 
-      // Set first player
-      const playerIds = Array.from(game.players.keys());
-      game.currentPlayer = playerIds[0];
+      // Set first player (only non-spectators with lives > 0)
+      const eligiblePlayerIds = Array.from(game.players.values())
+        .filter(p => !p.isSpectator && p.lives > 0)
+        .map(p => p.id);
+      game.currentPlayer = eligiblePlayerIds[0];
       game.firstPlayerId = game.currentPlayer;
       game.firstTurn = true;
       game.gamePhase = 'firstTurn';
@@ -321,9 +323,15 @@ export function setupSocketHandlers(io: Server, game: Game): void {
       emitGameState(io, game);
     });
 
-    socket.on('leaveGame', () => {
-      game.players.delete(socket.id);
-      if (game.hostId === socket.id) {
+    // Helper to handle player leaving (manual or disconnect)
+    function handlePlayerLeave(socketId: string) {
+      const player = game.players.get(socketId);
+      if (player) {
+        // Burn (remove) all cards in their hand
+        player.cards = [];
+      }
+      game.players.delete(socketId);
+      if (game.hostId === socketId) {
         // Find a new host: prefer non-spectators with lives > 0
         const candidates = Array.from(game.players.values()).filter(p => !p.isSpectator && p.lives > 0);
         if (candidates.length > 0) {
@@ -334,8 +342,16 @@ export function setupSocketHandlers(io: Server, game: Game): void {
           game.hostId = allPlayers.length > 0 ? allPlayers[0] : null;
         }
       }
-      io.emit('playerLeft', socket.id);
+      io.emit('playerLeft', socketId);
       emitLobbyState(io, game);
+    }
+
+    socket.on('leaveGame', () => {
+      handlePlayerLeave(socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      handlePlayerLeave(socket.id);
     });
 
     // Handle round summary acknowledgement
@@ -379,17 +395,16 @@ export function setupSocketHandlers(io: Server, game: Game): void {
             return;
           }
         }
-        // Rotate starting player
-        const playerIds = Array.from(game.players.keys()).filter(id => {
-          const p = game.players.get(id);
-          return p && !p.isSpectator && p.lives > 0;
-        });
+        // Rotate starting player (only non-spectators with lives > 0)
+        const eligiblePlayerIds = Array.from(game.players.values())
+          .filter(p => !p.isSpectator && p.lives > 0)
+          .map(p => p.id);
         let nextFirstIndex = 0;
         if (game.firstPlayerId) {
-          const prevIndex = playerIds.indexOf(game.firstPlayerId);
-          nextFirstIndex = (prevIndex + 1) % playerIds.length;
+          const prevIndex = eligiblePlayerIds.indexOf(game.firstPlayerId);
+          nextFirstIndex = (prevIndex + 1) % eligiblePlayerIds.length;
         }
-        game.currentPlayer = playerIds[nextFirstIndex];
+        game.currentPlayer = eligiblePlayerIds[nextFirstIndex];
         game.firstTurn = true;
         game.firstPlayerId = game.currentPlayer;
         game.knockerId = null;

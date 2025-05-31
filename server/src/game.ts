@@ -66,12 +66,15 @@ export function dealCards(game: Game): void {
 }
 
 export function advanceTurn(game: Game): void {
-  const playerIds = Array.from(game.players.keys());
-  if (playerIds.length === 0) return;
+  // Only consider players who are not spectators and have lives > 0
+  const eligiblePlayerIds = Array.from(game.players.values())
+    .filter(p => !p.isSpectator && p.lives > 0)
+    .map(p => p.id);
+  if (eligiblePlayerIds.length === 0) return;
 
-  const currentIndex = game.currentPlayer ? playerIds.indexOf(game.currentPlayer) : -1;
-  const nextIndex = (currentIndex + 1) % playerIds.length;
-  game.currentPlayer = playerIds[nextIndex];
+  const currentIndex = game.currentPlayer ? eligiblePlayerIds.indexOf(game.currentPlayer) : -1;
+  const nextIndex = (currentIndex + 1) % eligiblePlayerIds.length;
+  game.currentPlayer = eligiblePlayerIds[nextIndex];
 
   const nextPlayer = game.players.get(game.currentPlayer);
   if (nextPlayer) {

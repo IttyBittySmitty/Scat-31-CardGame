@@ -43,24 +43,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Other Players */}
-      <div className="flex flex-row justify-center items-start gap-4 w-full max-w-[600px] mx-auto p-4">
+      <div className="flex justify-evenly items-start w-full mb-4 gap-x-4">
         {(players || [])
           .filter(p => p.id !== socket?.id)
           .map(player => (
-            <div key={player.id} className="bg-white rounded-lg shadow p-4 flex flex-col items-center w-32 min-w-[120px]">
-              <span className="font-medium mb-2">{player.name}</span>
-              <div className="flex space-x-2">
+            <div key={player.id} className="flex flex-col items-center mx-2">
+              <span className="font-semibold mb-1">{player.name}</span>
+              <div className="flex gap-x-1">
                 {(player.cards || []).map((card, index) => (
                   <div
                     key={index}
-                    className="w-10 h-16 bg-blue-100 rounded-lg border-2 border-blue-300 flex items-center justify-center"
+                    className="w-10 h-16 bg-gray-200 rounded border border-gray-400 flex items-center justify-center"
                   >
-                    {isSpectator && (
-                      <span className="text-xs font-bold">{card.face}</span>
-                    )}
+                    {isSpectator && <span className="text-xs font-bold">{card.face}</span>}
                   </div>
                 ))}
               </div>
+              <span className="text-xs text-gray-500 mt-1">Lives: {player.lives}</span>
             </div>
           ))}
       </div>
@@ -144,6 +143,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             onDiscardCard={onDiscardCard}
             score={myPlayer.score}
             lives={myPlayer.lives}
+            socket={socket}
           />
         </div>
       )}

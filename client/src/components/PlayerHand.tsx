@@ -7,6 +7,7 @@ interface PlayerHandProps {
   onDiscardCard: (cardIndex: number) => void;
   score: number;
   lives: number;
+  socket: any;
 }
 
 export const PlayerHand: React.FC<PlayerHandProps> = ({
@@ -15,33 +16,32 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
   onDiscardCard,
   score,
   lives,
+  socket,
 }) => {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-6">
-        <h2 className="text-xl font-semibold text-gray-900">Your Hand</h2>
-        <span className="text-gray-700">Score: <span className="font-bold">{score}</span></span>
-        <span className="text-gray-700">Lives: <span className="font-bold">{lives}</span></span>
-      </div>
-      <div className="flex space-x-4">
-        {cards.map((card, index) => (
-          <button
-            key={index}
-            onClick={() => isMyTurn && onDiscardCard(index)}
-            disabled={!isMyTurn}
-            className={`w-24 h-36 bg-white rounded-lg shadow-lg border-2 ${
-              isMyTurn
-                ? 'border-blue-500 hover:border-blue-600 cursor-pointer'
-                : 'border-gray-300 cursor-not-allowed'
-            }`}
+    <div className="p-4 bg-white shadow-lg rounded-lg">
+      <h2 className="text-lg font-bold mb-2">Your Hand</h2>
+      <div className="flex space-x-2 mb-2">
+        {cards.map((card, idx) => (
+          <div
+            key={idx}
+            className="w-16 h-24 bg-blue-100 rounded-lg flex flex-col items-center justify-center border border-gray-300"
           >
-            <div className="flex flex-col items-center justify-center h-full">
-              <span className="text-xl font-bold">{card.face}</span>
-              <span className="text-sm text-gray-500">{card.suit}</span>
-            </div>
-          </button>
+            <span className="text-xl font-bold">{card.face}</span>
+            <span className="text-sm text-gray-500">{card.suit}</span>
+          </div>
         ))}
       </div>
+      <div className="flex justify-between items-center mt-2">
+        <span>Score: <b>{score}</b></span>
+        <span>Lives: <b>{lives}</b></span>
+      </div>
+      <button
+        onClick={() => socket && socket.emit('leaveGame')}
+        className="mt-4 w-full px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+      >
+        Leave Game
+      </button>
     </div>
   );
 }; 
