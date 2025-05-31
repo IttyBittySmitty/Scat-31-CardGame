@@ -106,6 +106,15 @@ export const useGameSocket = () => {
       }));
     });
 
+    newSocket.on('cardDiscarded', (data: { playerId: string, card: Card, nextPlayer: string, players: Player[], discardPileTop: Card }) => {
+      setGameState(prev => ({
+        ...prev,
+        players: data.players,
+        currentPlayer: data.nextPlayer,
+        discardPileTop: data.discardPileTop,
+      }));
+    });
+
     newSocket.on('gameEnded', (data) => {
       console.log('gameEnded', data);
       setGameState(prev => ({
