@@ -23,24 +23,29 @@ export function setupSocketHandlers(io: Server, game: Game): void {
           return;
         }
 
+        // If game is in progress, join as spectator
+        const isSpectator = game.status === 'playing';
         const player: Player = {
           id: socket.id,
           name: playerName,
           cards: [],
           score: 0,
-          lives: 3,
+          lives: isSpectator ? 0 : 3,
           turnCount: 0,
           canKnock: false,
           canDraw: false,
           canDiscard: false,
           isReady: false,
+          isSpectator,
         };
 
         game.players.set(socket.id, player);
         if (!game.hostId) {
           game.hostId = socket.id;
         }
-        game.status = 'lobby';
+        if (!isSpectator) {
+          game.status = 'lobby';
+        }
         emitLobbyState(io, game);
         io.emit('playerJoined', { id: socket.id, name: playerName });
       } catch (err) {
@@ -316,7 +321,7 @@ export function setupSocketHandlers(io: Server, game: Game): void {
       emitGameState(io, game);
     });
 
-    socket.on('disconnect', () => {
+    socket.on('leaveGame', () => {
       game.players.delete(socket.id);
       if (game.hostId === socket.id) {
         // Find a new host: prefer non-spectators with lives > 0
@@ -343,6 +348,15 @@ export function setupSocketHandlers(io: Server, game: Game): void {
         const remaining = activePlayers.filter(p => p.lives > 0);
         if (remaining.length <= 1) {
           // Game over
+          // Assign host to player with most lives
+          const allPlayers = Array.from(game.players.values());
+          let maxLives = Math.max(...allPlayers.map(p => p.lives));
+          const candidates = allPlayers.filter(p => p.lives === maxLives);
+          if (candidates.length > 0) {
+            game.hostId = candidates[0].id;
+          } else {
+            game.hostId = null;
+          }
           io.emit('gameEnded', {
             winner: remaining[0]?.name,
             players: Array.from(game.players.values()).map(p => ({
@@ -413,7 +427,7 @@ export function setupSocketHandlers(io: Server, game: Game): void {
         socket.emit('error', 'Only the winner can start a new game');
         return;
       }
-      // Reset all players
+      // Reset all players (including spectators)
       for (const p of game.players.values()) {
         p.lives = 3;
         p.score = 0;
