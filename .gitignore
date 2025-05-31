@@ -1,2 +1,16 @@
 node_modules
-node_modules
+# Ignore build output
+client/build
+server/dist
+# Ignore lock files (optional, if you want to keep them out of git)
+client/package-lock.json
+server/package-lock.json
+# Ignore environment files
+.env
+client/.env
+server/.env
+# Ignore OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
