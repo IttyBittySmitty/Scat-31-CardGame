@@ -144,6 +144,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             score={myPlayer.score}
             lives={myPlayer.lives}
             socket={socket}
+            canDiscard={myPlayer.canDiscard}
           />
         </div>
       )}

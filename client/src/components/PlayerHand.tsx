@@ -8,6 +8,7 @@ interface PlayerHandProps {
   score: number;
   lives: number;
   socket: any;
+  canDiscard?: boolean;
 }
 
 export const PlayerHand: React.FC<PlayerHandProps> = ({
@@ -17,7 +18,9 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
   score,
   lives,
   socket,
+  canDiscard,
 }) => {
+  const canClickToDiscard = isMyTurn && canDiscard && cards.length === 4;
   return (
     <div className="p-4 bg-white shadow-lg rounded-lg">
       <h2 className="text-lg font-bold mb-2">Your Hand</h2>
@@ -25,7 +28,9 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
         {cards.map((card, idx) => (
           <div
             key={idx}
-            className="w-16 h-24 bg-blue-100 rounded-lg flex flex-col items-center justify-center border border-gray-300"
+            className={`w-16 h-24 rounded-lg flex flex-col items-center justify-center border border-gray-300 ${canClickToDiscard ? 'bg-blue-200 cursor-pointer hover:bg-blue-300' : 'bg-blue-100'}`}
+            onClick={canClickToDiscard ? () => onDiscardCard(idx) : undefined}
+            title={canClickToDiscard ? 'Click to discard this card' : ''}
           >
             <span className="text-xl font-bold">{card.face}</span>
             <span className="text-sm text-gray-500">{card.suit}</span>
@@ -38,9 +43,10 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
       </div>
       <button
         onClick={() => socket && socket.emit('leaveGame')}
-        className="mt-4 w-full px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+        className="mt-2 px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+        style={{ alignSelf: 'flex-start', minWidth: 'unset', width: 'auto' }}
       >
-        Leave Game
+        Leave
       </button>
     </div>
   );

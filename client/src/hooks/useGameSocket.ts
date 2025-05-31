@@ -12,6 +12,7 @@ export const useGameSocket = () => {
     firstTurn: false,
     gamePhase: null,
     topDeckCard: null,
+    status: 'lobby',
   });
   const [lobbyState, setLobbyState] = useState<LobbyState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +34,27 @@ export const useGameSocket = () => {
     });
 
     newSocket.on('playerLeft', (playerId: string) => {
-      setGameState(prev => ({
-        ...prev,
-        players: prev.players.filter(p => p.id !== playerId)
-      }));
+      if (playerId === newSocket.id) {
+        // If the current player left, reset to initial lobby state
+        setGameState({
+          players: [],
+          currentPlayer: null,
+          discardPileTop: null,
+          firstTurn: false,
+          gamePhase: null,
+          topDeckCard: null,
+          status: 'lobby',
+        });
+        setLobbyState(null);
+        setGameMessage(null);
+        setEndGameData(null);
+        setRoundSummary(null);
+      } else {
+        setGameState(prev => ({
+          ...prev,
+          players: prev.players.filter(p => p.id !== playerId)
+        }));
+      }
     });
 
     newSocket.on('gameStarted', (data) => {
@@ -48,6 +66,7 @@ export const useGameSocket = () => {
         firstTurn: !!data.firstTurn,
         gamePhase: 'firstTurn',
         topDeckCard: data.topDeckCard || null,
+        status: 'playing',
       });
       setGameMessage(null);
       setIsLoading(false);
@@ -62,6 +81,7 @@ export const useGameSocket = () => {
         firstTurn: !!data.firstTurn,
         gamePhase: 'firstTurn',
         topDeckCard: data.topDeckCard || null,
+        status: 'playing',
       });
       setGameMessage(null);
       setRoundSummary(null);
